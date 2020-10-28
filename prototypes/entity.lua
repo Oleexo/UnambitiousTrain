@@ -97,7 +97,7 @@ data:extend({cargo_wagon_2,cargo_wagon_3,fluid_wagon_2,fluid_wagon_3})
 
 local electricity_provider = table.deepcopy(data.raw['electric-energy-interface']['electric-energy-interface'])	
 electricity_provider.name = "et-electricity-provider"
-electricity_provider.icon = "__CrazyTrain__/graphics/power-provider-icon.png"
+electricity_provider.icon = "__UnambitiousTrain__/graphics/power-provider-icon.png"
 electricity_provider.minable.result = "et-electricity-provider"
 electricity_provider.gui_mode = nil
 electricity_provider.allow_copy_paste = false
@@ -114,7 +114,7 @@ electricity_provider.energy_usage = "100KW"
 electricity_provider.drain = "200KW"
 electricity_provider.picture =
 					{
-						filename = "__CrazyTrain__/graphics/power-provider.png",
+						filename = "__UnambitiousTrain__/graphics/power-provider.png",
 						priority = "extra-high",
 						width = 124,
 						height = 103,

@@ -51,7 +51,7 @@ data:extend({fluid_wagon_2,fluid_wagon_3})
 
 local electricity_provider = table.deepcopy(data.raw['item']['accumulator'])
 electricity_provider.name = "et-electricity-provider"
-electricity_provider.icon = "__CrazyTrain__/graphics/power-provider-icon.png"
+electricity_provider.icon = "__UnambitiousTrain__/graphics/power-provider-icon.png"
 electricity_provider.icon_size = 32
 electricity_provider.subgroup = "electric-transport-log"
 electricity_provider.order = "e"
@@ -64,11 +64,39 @@ data:extend(
 {
 	{
 		type = "item",
-		name = "et-electric-locomotive-fuel",
+		name = "et-electric-locomotive-1-fuel",
 		icon = "__base__/graphics/icons/wood.png",
 		icon_size = 32,
 		flags = { "hidden" },
-		fuel_value = "2GJ",
+		fuel_value = "1MW",
+		fuel_category = "chemical",
+		stack_size = 1
+	}
+})
+
+data:extend(
+{
+	{
+		type = "item",
+		name = "et-electric-locomotive-2-fuel",
+		icon = "__base__/graphics/icons/wood.png",
+		icon_size = 32,
+		flags = { "hidden" },
+		fuel_value = "2MW",
+		fuel_category = "chemical",
+		stack_size = 1
+	}
+})
+
+data:extend(
+{
+	{
+		type = "item",
+		name = "et-electric-locomotive-3-fuel",
+		icon = "__base__/graphics/icons/wood.png",
+		icon_size = 32,
+		flags = { "hidden" },
+		fuel_value = "3MW",
 		fuel_category = "chemical",
 		stack_size = 1
 	}

@@ -1,6 +1,6 @@
 local electric_railway = table.deepcopy(data.raw['technology']['railway'])
 electric_railway.name = "et-electric-railway"
-electric_railway.icon = "__CrazyTrain__/graphics/tech.png"
+electric_railway.icon = "__UnambitiousTrain__/graphics/tech.png"
 electric_railway.icon_size = 128
 electric_railway.effects = 
 	{

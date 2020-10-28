@@ -32,7 +32,7 @@ script.on_load(ON_LOAD)
 function ON_CONFIGURATION_CHANGED(data)
 	CallRemoteInterface()
 
-	local mod_name = "CrazyTrain"
+	local mod_name = "UnambitiousTrain"
 	if IsModChanged(data,mod_name) then
 		if data.mod_changes[mod_name].old_version == "0.17.201" or GetOldVersion(data,mod_name) < "00.17.05" then
 			ON_INIT()
@@ -69,8 +69,9 @@ function ON_BUILT_ENTITY(event)
 		elseif entity.type == "locomotive" then
 			if entity.name:match("^et%-electric%-locomotive%-%d$") or entity.name:match("^et%-electric%-locomotive%-%d%-mu$") then 
 			table.insert(global.TrainList,entity)
-			entity.burner.currently_burning = game.item_prototypes['et-electric-locomotive-fuel']
-			entity.burner.remaining_burning_fuel = entity.burner.currently_burning.fuel_value
+			SetFuel(entity)
+
+			entity.burner.remaining_burning_fuel = 0
 			anz_train = anz_train + 1
 			end
 		end
@@ -96,63 +97,95 @@ function ON_TICK()
 				anz_provider = anz_provider - 1
 			end
 		end
-			
-		if provider_power > 0 then 
-			for i,train in pairs(global.TrainList) do
-				if train and train.valid then
-					if is_fuel_removed then
-						train.burner.currently_burning = game.item_prototypes['et-electric-locomotive-fuel']
-						train.burner.remaining_burning_fuel = train.burner.currently_burning.fuel_value
-					end
-					need_power = need_power + train.burner.currently_burning.fuel_value - train.burner.remaining_burning_fuel		
-				else
-					global.TrainList[i] = nil				
-					anz_train = anz_train - 1
+		local power_used = 0
+		for i,train in pairs(global.TrainList) do
+			if train and train.valid then
+				 if train.burner.currently_burning == nil then
+					SetFuel(train)
+					train.burner.remaining_burning_fuel = 0
 				end
-			end
-			is_fuel_removed = false
-		
-			rest_power = provider_power - need_power
-			if rest_power >= 0 then
-				for _,train in pairs(global.TrainList) do
-					if train and train.valid then
-						train.burner.remaining_burning_fuel = train.burner.currently_burning.fuel_value
-					else
-						global.TrainList[i] = nil				
-						anz_train = anz_train - 1
+				if power_used < provider_power then
+					if train.burner.remaining_burning_fuel < train.burner.currently_burning.fuel_value then
+						local e = train.burner.currently_burning.fuel_value - train.burner.remaining_burning_fuel
+						if e > provider_power - power_used then
+							e = provider_power - power_used
+						end
+						power_used = power_used + e
+						train.burner.remaining_burning_fuel = train.burner.remaining_burning_fuel + e
 					end
 				end
-				split_power = rest_power / anz_provider
-				for _,provider in pairs(global.ProviderList) do
-					if provider and provider.valid then
-						provider.energy = split_power
-					else
-						global.ProviderList[i] = nil
-						anz_provider = anz_provider - 1
-					end
-				end
-			else
-				for _,provider in pairs(global.ProviderList) do
-					if provider and provider.valid then
-						provider.energy = 0
-					else
-						global.ProviderList[i] = nil
-						anz_provider = anz_provider - 1
-					end
-				end
-				split_power = provider_power / anz_train
-				for i,train in pairs(global.TrainList) do
-					if train and train.valid then	
-						train.burner.remaining_burning_fuel = train.burner.remaining_burning_fuel + split_power
-					else
-						global.TrainList[i] = nil				
-						anz_train = anz_train - 1
-					end
-				end
-			end
-		else
-			RemoveTrainFuel()
+		 	end
 		end
+
+		for i,provider in pairs(global.ProviderList) do
+			if provider and provider.valid then
+				if (provider.energy > power_used) then
+					provider.energy = provider.energy - power_used
+					power_used = 0
+				else
+					local c = provider.energy
+					provider.energy = 0
+					power_used = power_used - c
+				end
+			end
+		end
+
+		-- if provider_power > 0 then 
+		-- 	for i,train in pairs(global.TrainList) do
+		-- 		if train and train.valid then
+		-- 			if is_fuel_removed then
+		-- 				train.burner.currently_burning = game.item_prototypes['et-electric-locomotive-fuel']
+		-- 				train.burner.remaining_burning_fuel = train.burner.currently_burning.fuel_value
+		-- 			end
+		-- 			need_power = need_power + train.burner.currently_burning.fuel_value - train.burner.remaining_burning_fuel		
+		-- 		else
+		-- 			global.TrainList[i] = nil				
+		-- 			anz_train = anz_train - 1
+		-- 		end
+		-- 	end
+		-- 	is_fuel_removed = false
+		
+		-- 	rest_power = provider_power - need_power
+		-- 	if rest_power >= 0 then
+		-- 		for _,train in pairs(global.TrainList) do
+		-- 			if train and train.valid then
+		-- 				train.burner.remaining_burning_fuel = train.burner.currently_burning.fuel_value
+		-- 			else
+		-- 				global.TrainList[i] = nil				
+		-- 				anz_train = anz_train - 1
+		-- 			end
+		-- 		end
+		-- 		split_power = rest_power / anz_provider
+		-- 		for _,provider in pairs(global.ProviderList) do
+		-- 			if provider and provider.valid then
+		-- 				provider.energy = split_power
+		-- 			else
+		-- 				global.ProviderList[i] = nil
+		-- 				anz_provider = anz_provider - 1
+		-- 			end
+		-- 		end
+		-- 	else
+		-- 		for _,provider in pairs(global.ProviderList) do
+		-- 			if provider and provider.valid then
+		-- 				provider.energy = 0
+		-- 			else
+		-- 				global.ProviderList[i] = nil
+		-- 				anz_provider = anz_provider - 1
+		-- 			end
+		-- 		end
+		-- 		split_power = provider_power / anz_train
+		-- 		for i,train in pairs(global.TrainList) do
+		-- 			if train and train.valid then	
+		-- 				train.burner.remaining_burning_fuel = train.burner.remaining_burning_fuel + split_power
+		-- 			else
+		-- 				global.TrainList[i] = nil				
+		-- 				anz_train = anz_train - 1
+		-- 			end
+		-- 		end
+		-- 	end
+		-- else
+		-- 	RemoveTrainFuel()
+		-- end
 	else
 		if anz_train > 0 and anz_provider == 0 and not is_fuel_removed then
 			RemoveTrainFuel()
@@ -160,6 +193,18 @@ function ON_TICK()
 	end
 end
 script.on_event(defines.events.on_tick,ON_TICK)
+
+function SetFuel(entity)
+	if entity.name == "et-electric-locomotive-3" then
+		entity.burner.currently_burning = game.item_prototypes['et-electric-locomotive-3-fuel']
+	else 
+		if entity.name == "et-electric-locomotive-2" then
+			entity.burner.currently_burning = game.item_prototypes['et-electric-locomotive-2-fuel']
+		else
+			entity.burner.currently_burning = game.item_prototypes['et-electric-locomotive-1-fuel']
+		end
+	end
+end
 
 function RemoveTrainFuel()
 	for i,train in pairs(global.TrainList) do
