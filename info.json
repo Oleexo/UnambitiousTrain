@@ -1,0 +1,9 @@
+{
+	"name":"CrazyTrain",
+	"author":"Co",
+	"version":"0.0.1",
+	"title":"Crazy Train",
+	"description":"Adds electric locomotives to the game.",
+	"factorio_version":"1.0",
+	"dependencies": ["base >= 1.0", "?FactorioExtended-Trains", "?boblogistics", "?Vehicle Wagon", "?EvenMoreLight"]
+}
