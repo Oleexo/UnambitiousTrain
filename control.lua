@@ -24,7 +24,7 @@ script.on_init(ON_INIT)
 function ON_LOAD()
 	anz_train = Count(global.TrainList)
 	anz_provider = Count(global.ProviderList)
-	
+
 	CallRemoteInterface()
 end
 script.on_load(ON_LOAD)
@@ -83,12 +83,12 @@ script.on_event({defines.events.on_built_entity,defines.events.on_robot_built_en
 local is_fuel_removed = false
 
 function ON_TICK()
-	if anz_provider > 0 and anz_train > 0 then
-		local need_power = 0
-		local provider_power = 0
-		local rest_power = 0
-		local split_power = 0
-		
+	local need_power = 0
+	local provider_power = 0
+	local rest_power = 0
+	local split_power = 0
+
+	if anz_provider > 0 then
 		for i,provider in pairs(global.ProviderList) do
 			if provider and provider.valid then
 				provider_power = provider_power + provider.energy
@@ -97,10 +97,12 @@ function ON_TICK()
 				anz_provider = anz_provider - 1
 			end
 		end
-		local power_used = 0
+	end
+	local power_used = 0
+	if anz_train > 0 and provider_power > 0 then
 		for i,train in pairs(global.TrainList) do
 			if train and train.valid then
-				 if train.burner.currently_burning == nil then
+					if train.burner.currently_burning == nil then
 					SetFuel(train)
 					train.burner.remaining_burning_fuel = 0
 				end
@@ -114,9 +116,10 @@ function ON_TICK()
 						train.burner.remaining_burning_fuel = train.burner.remaining_burning_fuel + e
 					end
 				end
-		 	end
+			end
 		end
-
+	end
+	if power_used > 0 then
 		for i,provider in pairs(global.ProviderList) do
 			if provider and provider.valid then
 				if (provider.energy > power_used) then
@@ -128,67 +131,6 @@ function ON_TICK()
 					power_used = power_used - c
 				end
 			end
-		end
-
-		-- if provider_power > 0 then 
-		-- 	for i,train in pairs(global.TrainList) do
-		-- 		if train and train.valid then
-		-- 			if is_fuel_removed then
-		-- 				train.burner.currently_burning = game.item_prototypes['et-electric-locomotive-fuel']
-		-- 				train.burner.remaining_burning_fuel = train.burner.currently_burning.fuel_value
-		-- 			end
-		-- 			need_power = need_power + train.burner.currently_burning.fuel_value - train.burner.remaining_burning_fuel		
-		-- 		else
-		-- 			global.TrainList[i] = nil				
-		-- 			anz_train = anz_train - 1
-		-- 		end
-		-- 	end
-		-- 	is_fuel_removed = false
-		
-		-- 	rest_power = provider_power - need_power
-		-- 	if rest_power >= 0 then
-		-- 		for _,train in pairs(global.TrainList) do
-		-- 			if train and train.valid then
-		-- 				train.burner.remaining_burning_fuel = train.burner.currently_burning.fuel_value
-		-- 			else
-		-- 				global.TrainList[i] = nil				
-		-- 				anz_train = anz_train - 1
-		-- 			end
-		-- 		end
-		-- 		split_power = rest_power / anz_provider
-		-- 		for _,provider in pairs(global.ProviderList) do
-		-- 			if provider and provider.valid then
-		-- 				provider.energy = split_power
-		-- 			else
-		-- 				global.ProviderList[i] = nil
-		-- 				anz_provider = anz_provider - 1
-		-- 			end
-		-- 		end
-		-- 	else
-		-- 		for _,provider in pairs(global.ProviderList) do
-		-- 			if provider and provider.valid then
-		-- 				provider.energy = 0
-		-- 			else
-		-- 				global.ProviderList[i] = nil
-		-- 				anz_provider = anz_provider - 1
-		-- 			end
-		-- 		end
-		-- 		split_power = provider_power / anz_train
-		-- 		for i,train in pairs(global.TrainList) do
-		-- 			if train and train.valid then	
-		-- 				train.burner.remaining_burning_fuel = train.burner.remaining_burning_fuel + split_power
-		-- 			else
-		-- 				global.TrainList[i] = nil				
-		-- 				anz_train = anz_train - 1
-		-- 			end
-		-- 		end
-		-- 	end
-		-- else
-		-- 	RemoveTrainFuel()
-		-- end
-	else
-		if anz_train > 0 and anz_provider == 0 and not is_fuel_removed then
-			RemoveTrainFuel()
 		end
 	end
 end
@@ -204,15 +146,4 @@ function SetFuel(entity)
 			entity.burner.currently_burning = game.item_prototypes['et-electric-locomotive-1-fuel']
 		end
 	end
-end
-
-function RemoveTrainFuel()
-	for i,train in pairs(global.TrainList) do
-		if train and train.valid then
-			train.burner.currently_burning = nil
-		else
-			global.TrainList[i] = nil
-		end
-	end
-	is_fuel_removed = true
 end
